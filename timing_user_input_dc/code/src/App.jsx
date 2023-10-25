@@ -225,6 +225,18 @@ function Dashboard({ config = {}, location_list }) {
     setItemReload(true);
   }
 
+  async function getID(barcode){
+    let url = (config.api.host ? config.api.host : window.location.hostname) + (config.api.port ? ":" + config.api.port : "")
+    console.log(barcode)
+    const response = await APIBackend.api_get('http://' + url + '/id/get/' + config.api.type + '/' + barcode + "?full")
+      if (response.status === 200) {
+        console.log("id", response.payload)
+        return response.payload
+      } else {
+        console.log("ERROR LOADING ID")
+      }
+  }
+
   React.useEffect(() => {
     if (current_location && to !== current_location.id) {
       setTo(current_location.id)
@@ -240,9 +252,16 @@ function Dashboard({ config = {}, location_list }) {
       
       let url = (config.db.host ? config.db.host : window.location.hostname) + (config.db.port ? ":" + config.db.port : "")
       console.log(url)
-      APIBackend.api_get('http://' + url + '/state/at/'+ current_location.id).then((response) => {
+      APIBackend.api_get('http://' + url + '/state/at/'+ current_location.id).then(async (response) => {
         if (response.status === 200) {
           setItemsLoaded(true)
+          console.log("items", response.payload)
+          for (const item of Object.values(response.payload)) {
+            const idObj = await getID(item.item_id);
+            console.log("ID Object", idObj)
+            Object.assign(item, idObj);
+          }
+
           console.log("items", response.payload)
           dispatch({ type: 'SET_ITEMS', item: response.payload })
           setItemsError(false)
@@ -360,21 +379,33 @@ function Dashboard({ config = {}, location_list }) {
 
 
             <Card className='my-2'>
-            <Card.Header><h4>Current Jobs</h4></Card.Header>
+            <Card.Header>
+              <div className="d-flex justify-content-between">
+                <h4>Current Jobs @ {current_location.name}</h4>
+                <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-success btn-secondary">Start All</button>
+                            <button type="button" class="btn btn-danger btn-secondary">Stop All</button>
+                </div>
+              </div>
+              </Card.Header>
 
             <Card.Body>
               {Object.values(items_state).map(item => (
-                
                 <Card>
                   <Card.Body>
-                  <Card.Title>{item.item_id}</Card.Title>
-                  <Card.Text>
-                    Product Name: 
-                 </Card.Text>
-                 <Button variant="primary">Start</Button>
-                 <Button variant="primary">Stop</Button>
-                 </Card.Body>
-               </Card>
+                    <div className="d-flex justify-content-between">
+                      <Card.Title>{item.item_id}</Card.Title>
+                      <Card.Text>
+                        {item.name}
+                      </Card.Text>
+                      <div class="btn-group" role="group" aria-label="Basic example">
+                          <button type="button" class="btn btn-success btn-secondary">Start</button>
+                          <button type="button" class="btn btn-danger btn-secondary">Stop</button>
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+                
 
 
               ))}
