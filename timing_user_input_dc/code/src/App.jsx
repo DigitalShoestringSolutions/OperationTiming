@@ -202,6 +202,7 @@ function Dashboard({ config = {}, location_list }) {
   let [items_pending, setItemsPending] = React.useState(false)
   let [items_error, setItemsError] = React.useState(undefined)
   let [items_reload, setItemsReload] = React.useState(undefined)
+  let [buttonState, setbuttonState] = React.useState(true)
 
 
 
@@ -363,57 +364,89 @@ function Dashboard({ config = {}, location_list }) {
             <Card className='my-2'>
               <Card.Header><h4>{current_location.name}</h4></Card.Header>
               <Card.Body>
-                <BarcodeEntry config={config} barcode={barcode} setBarcode={setBarcode} submit={handle_barcode_submit} barcodeRef={barcodeRef} />
-                <DisplayItem item={current_item} pending={!item_loaded} error={item_error} />
-                <SetQuantity item={current_item} quantity={quantity} setQuantity={setQuantity} quantityRef={quantityRef} submitRef={submitRef} />
-                <div className="d-grid gap-2">
-                  <Button
-                    ref={submitRef}
-                    variant="success"
-                    disabled={current_item == null}
-                    onClick={handleSubmit}
-                  >Add</Button>
-                </div>
+                <BarcodeEntry config={config} barcode={barcode} setBarcode={setBarcode} submit={handle_barcode_submit} barcodeRef={barcodeRef} submitRef={submitRef} handleSubmit={handleSubmit} />
               </Card.Body>
             </Card>
 
 
             <Card className='my-2'>
-            <Card.Header>
-              <div className="d-flex justify-content-between">
-                <h4>Current Jobs @ {current_location.name}</h4>
-                <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-success btn-secondary">Start All</button>
-                            <button type="button" class="btn btn-danger btn-secondary">Stop All</button>
+              <Card.Header>
+                <div className="d-flex justify-content-between">
+                  <h4>Pending Jobs @ {current_location.name}</h4>
+                  <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
+                              <button type="button" class="btn btn-success btn-secondary">Start All</button>
+                  </div>
                 </div>
-              </div>
-              </Card.Header>
+                </Card.Header>
 
-            <Card.Body>
-              {Object.values(items_state).map(item => (
-                <Card>
-                  <Card.Body>
-                    <div className="d-flex justify-content-between">
-                      <Card.Title>{item.item_id}</Card.Title>
-                      <Card.Text>
-                        {item.name}
-                      </Card.Text>
-                      <div class="btn-group" role="group" aria-label="Basic example">
-                          <button type="button" class="btn btn-success btn-secondary">Start</button>
-                          <button type="button" class="btn btn-danger btn-secondary">Stop</button>
+              <Card.Body>
+                {Object.values(items_state).map(item => (
+                  <Card>
+                    <Card.Body>
+                      <div className="d-flex justify-content-between">
+                        <Card.Title>{item.item_id}</Card.Title>
+                        <Card.Text>
+                          {item.name}
+                        </Card.Text>
+                        <button type="button" class="btn btn-success btn-secondary">Start</button>                     
                       </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-                
+                    </Card.Body>
+                  </Card>))}
+              </Card.Body>
+            </Card>
 
+            <Card className='my-2'>
+              <Card.Header>
+                <div className="d-flex justify-content-between">
+                  <h4>Active Jobs @ {current_location.name}</h4>
+                  <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
+                              <button type="button" class="btn btn-danger btn-secondary">Stop All</button>
+                  </div>
+                </div>
+                </Card.Header>
 
-              ))}
+              <Card.Body>
+                {Object.values(items_state).map(item => (
+                  <Card>
+                    <Card.Body>
+                      <div className="d-flex justify-content-between">
+                        <Card.Title>{item.item_id}</Card.Title>
+                        <Card.Text>
+                          {item.name}
+                        </Card.Text>
+                        <button type="button" class="btn btn-danger btn-secondary">Stop</button>
+                      </div>
+                    </Card.Body>
+                  </Card>))}
+              </Card.Body>
+            </Card>
 
-              {/* {items_state.map((item, index) => (
-              <h4>{JSON.stringify(item)} </h4>
-              ))}; */}
-            </Card.Body>
+            <Card className='my-2'>
+              <Card.Header>
+                <div className="d-flex justify-content-between">
+                  <h4>Complete Jobs @ {current_location.name}</h4>
+                  <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
+                              <button type="button" class="btn btn-success btn-secondary">Resume All</button>
+                  </div>
+                </div>
+                </Card.Header>
+
+              <Card.Body>
+                {Object.values(items_state).map(item => (
+                  <Card>
+                    <Card.Body>
+                      <div className="d-flex justify-content-between">
+                        <Card.Title>{item.item_id}</Card.Title>
+                        <Card.Text>
+                          {item.name}
+                        </Card.Text>
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-success btn-secondary">Resume</button>
+                        </div>
+                      </div>
+                    </Card.Body>
+                  </Card>))}
+              </Card.Body>
             </Card>
 
           </Col>
@@ -437,8 +470,9 @@ function Dashboard({ config = {}, location_list }) {
   )
 }
 
-function BarcodeEntry({ submit, barcode, setBarcode, barcodeRef }) {
-  return <InputGroup className="mb-3">
+function BarcodeEntry({ submit, barcode, setBarcode, barcodeRef, submitRef, handleSubmit }) {
+  return <div>
+    <InputGroup className="mb-3">
     <InputGroup.Text style={{ width: "7em" }}><i className='bi bi-upc-scan me-1' />Barcode</InputGroup.Text>
     <Form.Control
       ref={barcodeRef}
@@ -452,10 +486,20 @@ function BarcodeEntry({ submit, barcode, setBarcode, barcodeRef }) {
         }
       }}
     />
-    <Button variant="primary" onClick={() => submit(barcode)}>
-      Check
-    </Button>
-  </InputGroup>
+    <Button
+      ref={submitRef}
+      variant="success"
+      disabled={!barcode}
+      onClick={handleSubmit}
+    >Add</Button>
+    
+    
+    </InputGroup>
+    <Form.Check
+            label="Start on Add"
+          />
+  </div>
+  
 }
 
 function DisplayItem({ item, pending, error }) {

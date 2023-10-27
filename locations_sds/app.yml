@@ -11,6 +11,7 @@ services:
                 - ./data/:/app/data
                 - ./config/:/app/config
                 - /etc/localtime:/etc/localtime:ro
+                - ./code/state/migrations:/app/state/migrations
             ports:
                 - "8001:80"
             restart: unless-stopped

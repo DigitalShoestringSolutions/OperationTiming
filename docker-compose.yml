@@ -92,3 +92,4 @@ services:
             - "mqtt_broker"
 networks:
     internal:
+        # name: shoestring-internal
