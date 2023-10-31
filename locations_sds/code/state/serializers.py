@@ -5,7 +5,7 @@ from .models import State, Event
 class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model=State
-        fields = ('record_id','item_id','location_link',"start","end","quantity")
+        fields = ('record_id','item_id','location_link',"start","end","quantity", "state")
 
     # def to_representation(self, obj):
         # rep = super().to_representation(obj)

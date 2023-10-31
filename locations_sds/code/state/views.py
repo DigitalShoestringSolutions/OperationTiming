@@ -54,6 +54,7 @@ def atLocLink(request,location_link):
         q = ( q | Q(end__gte=at_dt) ) & Q(start__lte=at_dt)
     q = q & Q(location_link__exact=location_link)
     qs = State.objects.filter(q).order_by('-start')
+    
     serializer = StateSerializer(qs,many=True)
     return Response(serializer.data)
 

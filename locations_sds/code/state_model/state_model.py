@@ -36,27 +36,30 @@ class StateModel:
 
     def handle_message(self,raw_msg):
         print(f"handling: {raw_msg}")
-        #listen for incoming events
+        
         try:
             #validate
             timestamp = dateutil.parser.isoparse(raw_msg['timestamp'])
-            loc_link_from = raw_msg.get('from',None)
-            loc_link_to = raw_msg['to']
-            item_id = raw_msg['item']
+            loc_link = raw_msg['to']
+            item_id = raw_msg['item_id']
+            message = raw_msg['message']
             quantity = raw_msg.get('quantity',None)
 
             #log event
-            event = Event.objects.create(item_id=item_id,from_location_link=loc_link_from,to_location_link=loc_link_to,quantity=quantity,timestamp=timestamp)
+            event = Event.objects.create(item_id=item_id,to_location_link=loc_link,quantity=quantity,timestamp=timestamp, message=message)
             
-            if loc_link_from == loc_link_to:
-                return
-            
-            # check item individual or collection?
+            output = update_individual(event)
 
-            if event.quantity is not None and event.from_location_link is not None:  
-                output = update_collection(event)
-            else:
-                output = update_individual(event)
+
+        #     if loc_link_from == loc_link_to:
+        #         return
+            
+        #     # check item individual or collection?
+
+        #     if event.quantity is not None and event.from_location_link is not None:  
+        #         output = update_collection(event)
+        #     else:
+        #         output = update_individual(event)
             
             #send update
             for msg in output:
@@ -145,7 +148,7 @@ def update_individual(event):
         except State.DoesNotExist:
             pass
 
-        newState = State.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp)
+        newState = State.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
 
     entered_msg = {
         'item_id':newState.item_id,

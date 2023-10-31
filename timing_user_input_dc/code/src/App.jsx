@@ -203,6 +203,7 @@ function Dashboard({ config = {}, location_list }) {
   let [items_error, setItemsError] = React.useState(undefined)
   let [items_reload, setItemsReload] = React.useState(undefined)
   let [buttonState, setbuttonState] = React.useState(true)
+  let [startOnAddButton, setstartOnAddButton] = React.useState(false)
 
 
 
@@ -221,15 +222,21 @@ function Dashboard({ config = {}, location_list }) {
     text = "Connected"
   }
 
-  const handle_barcode_submit = () => {
-    console.log("handle_barcode_submit: " + barcode)
-    setItemReload(true);
+  const onMessage = (item, message) => () => {
+    console.log("item:", item, "message:" , message)
+
   }
 
-  async function getID(barcode){
+  const handle_barcode_submit = (barcode) => {
+    console.log("handle_barcode_submit: " + barcode)
+    // setItemReload(true);
+  }
+
+  async function getID(prodID){
+    console.log(prodID)
     let url = (config.api.host ? config.api.host : window.location.hostname) + (config.api.port ? ":" + config.api.port : "")
-    console.log(barcode)
-    const response = await APIBackend.api_get('http://' + url + '/id/get/' + config.api.type + '/' + barcode + "?full")
+    console.log(prodID)
+    const response = await APIBackend.api_get('http://' + url + '/id/get/' + config.api.type  +'/' + prodID + "?full")
       if (response.status === 200) {
         console.log("id", response.payload)
         return response.payload
@@ -252,19 +259,25 @@ function Dashboard({ config = {}, location_list }) {
       setItemsReload(false);
       
       let url = (config.db.host ? config.db.host : window.location.hostname) + (config.db.port ? ":" + config.db.port : "")
-      console.log(url)
       APIBackend.api_get('http://' + url + '/state/at/'+ current_location.id).then(async (response) => {
         if (response.status === 200) {
+          const items = {'Active': [], 'Pending': [], 'Complete': []}
           setItemsLoaded(true)
           console.log("items", response.payload)
           for (const item of Object.values(response.payload)) {
             const idObj = await getID(item.item_id);
             console.log("ID Object", idObj)
             Object.assign(item, idObj);
+            // console.log(item)
+            // console.log(item.state)
+            items[item.state].push(item)
           }
+          console.log(items)
 
           console.log("items", response.payload)
-          dispatch({ type: 'SET_ITEMS', item: response.payload })
+          // dispatch({ type: 'SET_ITEMS', item: response.payload })
+          dispatch({ type: 'SET_ITEMS', item: items })
+
           setItemsError(false)
         } else {
           console.log("ERROR LOADING ITEMS")
@@ -329,15 +342,15 @@ function Dashboard({ config = {}, location_list }) {
 
   const handleSubmit = () => {
     const payload = {
-      item: current_item.id,
-      from: from,
-      to: to,
+      item_id: barcode,
+      to: current_location.id,
+      message: startOnAddButton ? "Active" : "Pending"
     }
     if (quantity) {
       payload.quantity = Number(quantity)
     }
 
-    const topic = "location_update/" + to + "/" + from
+    const topic = "location_update/" + to 
     try {
       sendJsonMessage(topic, payload);
       add_toast(toast_dispatch, { header: "Sent", body: "" })
@@ -364,7 +377,7 @@ function Dashboard({ config = {}, location_list }) {
             <Card className='my-2'>
               <Card.Header><h4>{current_location.name}</h4></Card.Header>
               <Card.Body>
-                <BarcodeEntry config={config} barcode={barcode} setBarcode={setBarcode} submit={handle_barcode_submit} barcodeRef={barcodeRef} submitRef={submitRef} handleSubmit={handleSubmit} />
+                <BarcodeEntry config={config} barcode={barcode} setBarcode={setBarcode} submit={handle_barcode_submit} barcodeRef={barcodeRef} submitRef={submitRef} handleSubmit={handleSubmit} startOnAddButton={startOnAddButton} setstartOnAddButton={setstartOnAddButton}/>
               </Card.Body>
             </Card>
 
@@ -380,15 +393,15 @@ function Dashboard({ config = {}, location_list }) {
                 </Card.Header>
 
               <Card.Body>
-                {Object.values(items_state).map(item => (
+                {items_state && items_state['Pending'] && items_state['Pending'].map(item => (
                   <Card>
                     <Card.Body>
                       <div className="d-flex justify-content-between">
-                        <Card.Title>{item.item_id}</Card.Title>
+                        <Card.Title>{item.name}</Card.Title>
                         <Card.Text>
-                          {item.name}
+                          {item.item_id}
                         </Card.Text>
-                        <button type="button" class="btn btn-success btn-secondary">Start</button>                     
+                        <button type="button" class="btn btn-success btn-secondary" onClick={onMessage(item,"Active")}>Start</button>                     
                       </div>
                     </Card.Body>
                   </Card>))}
@@ -406,15 +419,15 @@ function Dashboard({ config = {}, location_list }) {
                 </Card.Header>
 
               <Card.Body>
-                {Object.values(items_state).map(item => (
+                {items_state && items_state['Active'] && items_state['Active'].map(item => (
                   <Card>
                     <Card.Body>
                       <div className="d-flex justify-content-between">
-                        <Card.Title>{item.item_id}</Card.Title>
+                        <Card.Title>{item.name}</Card.Title>
                         <Card.Text>
-                          {item.name}
+                          {item.item_id}
                         </Card.Text>
-                        <button type="button" class="btn btn-danger btn-secondary">Stop</button>
+                        <button type="button" class="btn btn-danger btn-secondary" onClick={onMessage(item,"Complete")}> Stop</button>
                       </div>
                     </Card.Body>
                   </Card>))}
@@ -432,16 +445,16 @@ function Dashboard({ config = {}, location_list }) {
                 </Card.Header>
 
               <Card.Body>
-                {Object.values(items_state).map(item => (
+                {items_state && items_state['Complete'] && items_state['Complete'].map(item => (
                   <Card>
                     <Card.Body>
                       <div className="d-flex justify-content-between">
-                        <Card.Title>{item.item_id}</Card.Title>
+                        <Card.Title>{item.name}</Card.Title>
                         <Card.Text>
-                          {item.name}
+                          {item.item_id}
                         </Card.Text>
                         <div class="btn-group" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-success btn-secondary">Resume</button>
+                            <button type="button" class="btn btn-success btn-secondary" onClick={onMessage(item,"Active")}>Resume</button>
                         </div>
                       </div>
                     </Card.Body>
@@ -470,7 +483,7 @@ function Dashboard({ config = {}, location_list }) {
   )
 }
 
-function BarcodeEntry({ submit, barcode, setBarcode, barcodeRef, submitRef, handleSubmit }) {
+function BarcodeEntry({ submit, barcode, setBarcode, barcodeRef, submitRef, handleSubmit, startOnAddButton, setstartOnAddButton }) {
   return <div>
     <InputGroup className="mb-3">
     <InputGroup.Text style={{ width: "7em" }}><i className='bi bi-upc-scan me-1' />Barcode</InputGroup.Text>
@@ -497,6 +510,8 @@ function BarcodeEntry({ submit, barcode, setBarcode, barcodeRef, submitRef, hand
     </InputGroup>
     <Form.Check
             label="Start on Add"
+            value={startOnAddButton}
+            onChange={(event) => setstartOnAddButton(event.target.checked)}
           />
   </div>
   
