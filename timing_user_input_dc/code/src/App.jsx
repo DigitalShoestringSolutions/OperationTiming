@@ -222,10 +222,6 @@ function Dashboard({ config = {}, location_list }) {
     text = "Connected"
   }
 
-  const onMessage = (item, message) => () => {
-    console.log("item:", item, "message:" , message)
-
-  }
 
   const handle_barcode_submit = (barcode) => {
     console.log("handle_barcode_submit: " + barcode)
@@ -368,6 +364,34 @@ function Dashboard({ config = {}, location_list }) {
     }
   }
 
+  const onMessage = (itemId, message) => {
+    console.log("item:", itemId, "message:" , message)
+
+    const payload = {
+      item_id: itemId,
+      to: current_location.id,
+      message: message
+    }
+
+    const topic = "location_update/" + to 
+    try {
+      sendJsonMessage(topic, payload);
+      add_toast(toast_dispatch, { header: "Sent", body: "" })
+
+      //reset
+      // setQuantity("");
+      // setTo(""); //don't reset to enable quick rescans
+      // setFrom("");
+      // setBarcode("");
+      // dispatch({ type: 'SET_ITEM', item: null })
+      // barcodeRef.current.focus()
+    } catch (err) {
+      console.error(err)
+      add_toast(toast_dispatch, { header: "Error", body: err.message })
+    }
+  }
+
+
   return (
     <Container fluid className="p-0 d-flex flex-column">
       <Container fluid className="flex-grow-1 px-1 pt-2 px-sm-2">
@@ -401,7 +425,7 @@ function Dashboard({ config = {}, location_list }) {
                         <Card.Text>
                           {item.item_id}
                         </Card.Text>
-                        <button type="button" class="btn btn-success btn-secondary" onClick={onMessage(item,"Active")}>Start</button>                     
+                        <button type="button" class="btn btn-success btn-secondary" onClick={() => onMessage(item.item_id, "Active")}>Start</button>                     
                       </div>
                     </Card.Body>
                   </Card>))}
@@ -413,7 +437,7 @@ function Dashboard({ config = {}, location_list }) {
                 <div className="d-flex justify-content-between">
                   <h4>Active Jobs @ {current_location.name}</h4>
                   <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
-                              <button type="button" class="btn btn-danger btn-secondary">Stop All</button>
+                      <button type="button" class="btn btn-danger btn-secondary">Stop All</button>
                   </div>
                 </div>
                 </Card.Header>
@@ -427,7 +451,7 @@ function Dashboard({ config = {}, location_list }) {
                         <Card.Text>
                           {item.item_id}
                         </Card.Text>
-                        <button type="button" class="btn btn-danger btn-secondary" onClick={onMessage(item,"Complete")}> Stop</button>
+                        <button type="button" class="btn btn-danger btn-secondary" onClick={() => onMessage(item.item_id, "Complete")}> Stop</button>
                       </div>
                     </Card.Body>
                   </Card>))}
@@ -454,7 +478,7 @@ function Dashboard({ config = {}, location_list }) {
                           {item.item_id}
                         </Card.Text>
                         <div class="btn-group" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-success btn-secondary" onClick={onMessage(item,"Active")}>Resume</button>
+                            <button type="button" class="btn btn-success btn-secondary" onClick={() => onMessage(item.item_id, "Active")}>Resume</button>
                         </div>
                       </div>
                     </Card.Body>

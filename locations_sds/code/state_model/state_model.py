@@ -72,6 +72,7 @@ class StateModel:
 def update_collection(event):
     output_messages = []
     with transaction.atomic():
+        # find previous state where end is null
         try:
             prevFromState = State.objects.get(location_link__exact=event.from_location_link,item_id__exact=event.item_id,end__isnull=True)
             prevFromState.end = event.timestamp
@@ -128,7 +129,7 @@ def update_individual(event):
         try:
             prevState = State.objects.get(item_id__exact=event.item_id,end__isnull=True)
             
-            if prevState.location_link == event.to_location_link:
+            if prevState.location_link == event.to_location_link and prevState.state == event.message:
                 return []
 
             prevState.end = event.timestamp
@@ -146,6 +147,7 @@ def update_individual(event):
             output_messages.append({"topic":"location_state/exited/"+exited_msg['location_link'],"payload":exited_msg})
 
         except State.DoesNotExist:
+            print("no previous state")
             pass
 
         newState = State.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
