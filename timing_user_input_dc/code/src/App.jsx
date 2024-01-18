@@ -22,7 +22,6 @@ function App() {
   let [loaded, setLoaded] = React.useState(false)
   let [pending, setPending] = React.useState(false)
   let [error, setError] = React.useState(null)
-
   let [config, setConfig] = React.useState([])
 
   React.useEffect(() => {
@@ -63,12 +62,12 @@ function App() {
         subscriptions={[]}
         new_message_action={custom_new_message_action}
         reducer={CustomReducer}
-        initial_state={{ current_item: null, items_state: [] }}
+        initial_state={{ current_item: null, items_state: [] }} // May need to modify this 
         debug={true}
       >
         <ToastProvider position='bottom-end'>
           <BrowserRouter>
-            <Routing config={config} />
+            <Routing config={config}/>
           </BrowserRouter>
         </ToastProvider>
       </MQTTProvider>
@@ -179,12 +178,13 @@ function LocationList({ config = {}, location_list }) {
   </Container>
 }
 
-function Dashboard({ config = {}, location_list }) {
+function Dashboard({ config = {}, location_list}) {
   let params = useParams();
   const current_location_id = params.location_id
-  console.log(current_location_id)
   const current_location = location_list.find(elem => elem.id === current_location_id)
-  const { sendJsonMessage } = useMQTTControl()
+  const { sendJsonMessage, subscribe, unsubscribe } = useMQTTControl()
+
+
 
 
   const barcodeRef = React.useRef(null);
@@ -193,6 +193,7 @@ function Dashboard({ config = {}, location_list }) {
   const quantityRef = React.useRef(null);
   const submitRef = React.useRef(null);
 
+  let [subscribed, setSubscribed] = React.useState(false)
   let [barcode, setBarcode] = React.useState("")
   let [item_loaded, setItemLoaded] = React.useState(true)
   let [item_pending, setItemPending] = React.useState(false)
@@ -228,10 +229,25 @@ function Dashboard({ config = {}, location_list }) {
     // setItemReload(true);
   }
 
+
+  React.useEffect(() => {
+    if (!subscribed) {
+      subscribe("location_state/+/" +  current_location_id)
+      setSubscribed(true)
+    }
+  }, [current_location_id, subscribe, subscribed])
+
+  React.useEffect(() => {
+    return () => {
+      unsubscribe("location_state/+/" +  current_location_id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   async function getID(prodID){
-    console.log(prodID)
+    // console.log(prodID)
     let url = (config.api.host ? config.api.host : window.location.hostname) + (config.api.port ? ":" + config.api.port : "")
-    console.log(prodID)
+    // console.log(prodID)
     const response = await APIBackend.api_get('http://' + url + '/id/get/' + config.api.type  +'/' + prodID + "?full")
       if (response.status === 200) {
         console.log("id", response.payload)
@@ -268,7 +284,7 @@ function Dashboard({ config = {}, location_list }) {
             // console.log(item.state)
             items[item.state].push(item)
           }
-          console.log(items)
+          // console.log(items)
 
           console.log("items", response.payload)
           // dispatch({ type: 'SET_ITEMS', item: response.payload })
@@ -290,6 +306,9 @@ function Dashboard({ config = {}, location_list }) {
     }
   }, [config.api, config.db, dispatch, items_loaded, items_pending, items_reload])
 
+
+    
+
   React.useEffect(() => {
     let do_load = async () => {
       console.log("Loading New Item")
@@ -298,7 +317,7 @@ function Dashboard({ config = {}, location_list }) {
       setItemReload(false);
 
       let url = (config.api.host ? config.api.host : window.location.hostname) + (config.api.port ? ":" + config.api.port : "")
-      console.log(url)
+      // console.log(url)
       APIBackend.api_get('http://' + url + '/id/get/' + config.api.type + '/' + barcode + "?full").then((response) => {
         if (response.status === 200) {
           console.log("id", response.payload)
@@ -393,117 +412,117 @@ function Dashboard({ config = {}, location_list }) {
 
 
   return (
+
+    <>
     <Container fluid className="p-0 d-flex flex-column">
-      <Container fluid className="flex-grow-1 px-1 pt-2 px-sm-2">
-        <Row className="m-0 mx-2 d-flex justify-content-center pt-2 pb-2">
-          <Col>
-            {/* <CurrentStatus /> */}
-            <Card className='my-2'>
-              <Card.Header><h4>{current_location.name}</h4></Card.Header>
-              <Card.Body>
-                <BarcodeEntry config={config} barcode={barcode} setBarcode={setBarcode} submit={handle_barcode_submit} barcodeRef={barcodeRef} submitRef={submitRef} handleSubmit={handleSubmit} startOnAddButton={startOnAddButton} setstartOnAddButton={setstartOnAddButton}/>
-              </Card.Body>
-            </Card>
+        <Container fluid className="flex-grow-1 px-1 pt-2 px-sm-2">
+          <Row className="m-0 mx-2 d-flex justify-content-center pt-2 pb-2">
+            <Col>
+              {/* <CurrentStatus /> */}
+              <Card className='my-2'>
+                <Card.Header><h4>{current_location.name}</h4></Card.Header>
+                <Card.Body>
+                  <BarcodeEntry config={config} barcode={barcode} setBarcode={setBarcode} submit={handle_barcode_submit} barcodeRef={barcodeRef} submitRef={submitRef} handleSubmit={handleSubmit} startOnAddButton={startOnAddButton} setstartOnAddButton={setstartOnAddButton} />
+                </Card.Body>
+              </Card>
 
 
-            <Card className='my-2'>
-              <Card.Header>
-                <div className="d-flex justify-content-between">
-                  <h4>Pending Jobs @ {current_location.name}</h4>
-                  <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
-                              <button type="button" class="btn btn-success btn-secondary">Start All</button>
+              <Card className='my-2'>
+                <Card.Header>
+                  <div className="d-flex justify-content-between">
+                    <h4>Pending Jobs @ {current_location.name}</h4>
+                    <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
+                      <button type="button" class="btn btn-success btn-secondary">Start All</button>
+                    </div>
                   </div>
-                </div>
                 </Card.Header>
 
-              <Card.Body>
-                {items_state && items_state['Pending'] && items_state['Pending'].map(item => (
-                  <Card>
-                    <Card.Body>
-                      <div className="d-flex justify-content-between">
-                        <Card.Title>{item.name}</Card.Title>
-                        <Card.Text>
-                          {item.item_id}
-                        </Card.Text>
-                        <button type="button" class="btn btn-success btn-secondary" onClick={() => onMessage(item.item_id, "Active")}>Start</button>                     
-                      </div>
-                    </Card.Body>
-                  </Card>))}
-              </Card.Body>
-            </Card>
-
-            <Card className='my-2'>
-              <Card.Header>
-                <div className="d-flex justify-content-between">
-                  <h4>Active Jobs @ {current_location.name}</h4>
-                  <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
-                      <button type="button" class="btn btn-danger btn-secondary">Stop All</button>
-                  </div>
-                </div>
-                </Card.Header>
-
-              <Card.Body>
-                {items_state && items_state['Active'] && items_state['Active'].map(item => (
-                  <Card>
-                    <Card.Body>
-                      <div className="d-flex justify-content-between">
-                        <Card.Title>{item.name}</Card.Title>
-                        <Card.Text>
-                          {item.item_id}
-                        </Card.Text>
-                        <button type="button" class="btn btn-danger btn-secondary" onClick={() => onMessage(item.item_id, "Complete")}> Stop</button>
-                      </div>
-                    </Card.Body>
-                  </Card>))}
-              </Card.Body>
-            </Card>
-
-            <Card className='my-2'>
-              <Card.Header>
-                <div className="d-flex justify-content-between">
-                  <h4>Complete Jobs @ {current_location.name}</h4>
-                  <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
-                              <button type="button" class="btn btn-success btn-secondary">Resume All</button>
-                  </div>
-                </div>
-                </Card.Header>
-
-              <Card.Body>
-                {items_state && items_state['Complete'] && items_state['Complete'].map(item => (
-                  <Card>
-                    <Card.Body>
-                      <div className="d-flex justify-content-between">
-                        <Card.Title>{item.name}</Card.Title>
-                        <Card.Text>
-                          {item.item_id}
-                        </Card.Text>
-                        <div class="btn-group" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-success btn-secondary" onClick={() => onMessage(item.item_id, "Active")}>Resume</button>
+                <Card.Body>
+                  {items_state && items_state['Pending'] && items_state['Pending'].map(item => (
+                    <Card>
+                      <Card.Body>
+                        <div className="d-flex justify-content-between">
+                          <Card.Title>{item.name}</Card.Title>
+                          <Card.Text>
+                            {item.item_id}
+                          </Card.Text>
+                          <button type="button" class="btn btn-success btn-secondary" onClick={() => onMessage(item.item_id, "Active")}>Start</button>
                         </div>
-                      </div>
-                    </Card.Body>
-                  </Card>))}
-              </Card.Body>
-            </Card>
+                      </Card.Body>
+                    </Card>))}
+                </Card.Body>
+              </Card>
 
-          </Col>
-        </Row>
-      </Container>
-      <div className='bottom_bar'>
-        <ButtonGroup aria-label="Basic example">
-          <OverlayTrigger
-            placement='top'
-            overlay={
-              <Tooltip>
+              <Card className='my-2'>
+                <Card.Header>
+                  <div className="d-flex justify-content-between">
+                    <h4>Active Jobs @ {current_location.name}</h4>
+                    <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
+                      <button type="button" class="btn btn-danger btn-secondary">Stop All</button>
+                    </div>
+                  </div>
+                </Card.Header>
+
+                <Card.Body>
+                  {items_state && items_state['Active'] && items_state['Active'].map(item => (
+                    <Card>
+                      <Card.Body>
+                        <div className="d-flex justify-content-between">
+                          <Card.Title>{item.name}</Card.Title>
+                          <Card.Text>
+                            {item.item_id}
+                          </Card.Text>
+                          <button type="button" class="btn btn-danger btn-secondary" onClick={() => onMessage(item.item_id, "Complete")}> Stop</button>
+                        </div>
+                      </Card.Body>
+                    </Card>))}
+                </Card.Body>
+              </Card>
+
+              <Card className='my-2'>
+                <Card.Header>
+                  <div className="d-flex justify-content-between">
+                    <h4>Complete Jobs @ {current_location.name}</h4>
+                    <div class="btn-group btn-group-lg" role="group" aria-label="Basic example">
+                      <button type="button" class="btn btn-success btn-secondary">Resume All</button>
+                    </div>
+                  </div>
+                </Card.Header>
+
+                <Card.Body>
+                  {items_state && items_state['Complete'] && items_state['Complete'].map(item => (
+                    <Card>
+                      <Card.Body>
+                        <div className="d-flex justify-content-between">
+                          <Card.Title>{item.name}</Card.Title>
+                          <Card.Text>
+                            {item.item_id}
+                          </Card.Text>
+                          <div class="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-success btn-secondary" onClick={() => onMessage(item.item_id, "Active")}>Resume</button>
+                          </div>
+                        </div>
+                      </Card.Body>
+                    </Card>))}
+                </Card.Body>
+              </Card>
+
+            </Col>
+          </Row>
+        </Container>
+        <div className='bottom_bar'>
+          <ButtonGroup aria-label="Basic example">
+            <OverlayTrigger
+              placement='top'
+              overlay={<Tooltip>
                 Live updates over MQTT: {text}
-              </Tooltip>
-            }
-          >
-            <Button variant={variant} className='bi bi-rss'>{" " + text}</Button>
-          </OverlayTrigger>
-        </ButtonGroup>
-      </div>
-    </Container>
+              </Tooltip>}
+            >
+              <Button variant={variant} className='bi bi-rss'>{" " + text}</Button>
+            </OverlayTrigger>
+          </ButtonGroup>
+        </div>
+      </Container></>
   )
 }
 

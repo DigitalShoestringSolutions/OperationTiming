@@ -131,34 +131,41 @@ def update_individual(event):
             
             if prevState.location_link == event.to_location_link and prevState.state == event.message:
                 return []
+                # no change
+            # else if prevState.location_link == event.to_location_link: 
+            #     # change of operation state only
+            #     state_change_type = "timing"
+
+                
+            
 
             prevState.end = event.timestamp
             prevState.save()
-
+            
             exited_msg = {
                 'item_id':prevState.item_id,
                 'location_link':prevState.location_link,
                 'timestamp':prevState.end.isoformat(),
-                'event':'exited'
+                'event':'exited',
+                'state':prevState.state
                 }
-
             print(exited_msg)
             #send update
             output_messages.append({"topic":"location_state/exited/"+exited_msg['location_link'],"payload":exited_msg})
-
+        
         except State.DoesNotExist:
             print("no previous state")
             pass
 
-        newState = State.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
-
+    newState = State.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
+    
     entered_msg = {
         'item_id':newState.item_id,
         'location_link':newState.location_link,
         'timestamp':newState.start.isoformat(),
-        'event':'entered'
+        'event':'entered',
+        'state':newState.state
         }
-
     print(entered_msg)
     #send update
     output_messages.append({"topic":"location_state/entered/"+entered_msg['location_link'],"payload":entered_msg})

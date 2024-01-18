@@ -1,5 +1,6 @@
 export async function custom_new_message_action(dispatch, message) {
   console.log(message)
+  console.log('*** custom_new_message_action ***')
 }
 
 export const CustomReducer = (currentState, action) => {
@@ -24,3 +25,5 @@ export const CustomReducer = (currentState, action) => {
       throw new Error(`Unhandled action type: ${action.type}`);
   }
 };
+
+// remove from old list and add to new
