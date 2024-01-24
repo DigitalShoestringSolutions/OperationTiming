@@ -1,10 +1,11 @@
 import zmq
 import json
 import threading
-from state.models import State, Event
+from state.models import State, Event, LocationState
 from datetime import datetime
 import dateutil.parser
 from django.db import transaction
+from django.db.models import Sum
 
 context = zmq.Context()
 
@@ -125,21 +126,19 @@ def update_collection(event):
 
 def update_individual(event):
     output_messages = []
+    
+    # Update old timing state to end = true
     with transaction.atomic():
         try:
             prevState = State.objects.get(item_id__exact=event.item_id,end__isnull=True)
-            
             if prevState.location_link == event.to_location_link and prevState.state == event.message:
-                return []
-                # no change
-            # else if prevState.location_link == event.to_location_link: 
-            #     # change of operation state only
-            #     state_change_type = "timing"
-
-                
-            
+                return [] # no change if location and state unchanged
 
             prevState.end = event.timestamp
+            print(type(prevState.end))
+            time_elapsed = prevState.end - prevState.start
+            prevState.time_elapsed = int(time_elapsed.total_seconds())
+            print(f'Time Elapsed {prevState.time_elapsed}')
             prevState.save()
             
             exited_msg = {
@@ -152,11 +151,31 @@ def update_individual(event):
             print(exited_msg)
             #send update
             output_messages.append({"topic":"location_state/exited/"+exited_msg['location_link'],"payload":exited_msg})
-        
+    
         except State.DoesNotExist:
             print("no previous state")
             pass
 
+
+    # update old location state to end = true
+    with transaction.atomic():
+        try:
+            prevState = LocationState.objects.get(item_id__exact=event.item_id,end__isnull=True)
+            if prevState.location_link != event.to_location_link: 
+                # change of location state only
+                prevState.end = event.timestamp
+                active_states = State.objects.filter(location_link=prevState.location_link,start__lte=prevState.end,end__gte=prevState.start,state='Active')
+                total_time_elapsed = active_states.aggregate(total_time_elapsed=Sum('time_elapsed'))['total_time_elapsed']
+                print(total_time_elapsed)
+                prevState.time_elapsed = total_time_elapsed
+                prevState.save()
+                newLocationState = LocationState.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
+        except LocationState.DoesNotExist:
+            print("no previous locationstate")
+            newLocationState = LocationState.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
+            pass    
+
+                
     newState = State.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
     
     entered_msg = {
