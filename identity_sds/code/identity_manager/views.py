@@ -52,14 +52,58 @@ def identify(request,identifier_type,identifier):
 
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,BrowsableAPIRenderer))
-def getID(request,id=None):
+def identify_multi(request,identifier_type,id=None):
+    full_ids = []
+    id_nums = []
     if id is not None:
         ids = [id]
     else:
         raw_ids = request.GET.getlist("id")
         ids = [urllib.parse.unquote(id) for id in raw_ids]
 
-    print(ids)
+    print(f'IDs: {ids}')  
+    print(f'ID Type: {identifier_type}') 
+
+    full = request.GET.get("full",False)
+    try:
+        idfier_type = IdentifierType.objects.get(tag__exact=identifier_type)
+    except IdentifierType.DoesNotExist:
+        return Response({"reason":"Identifier Type Not Found"},status=status.HTTP_400_BAD_REQUEST)
+    
+    for id in ids:
+        try:
+            idfier = Identifier.objects.get(type__exact=idfier_type,value__exact=id)
+            identity = idfier.target
+            full_id = identity.get_id()
+            full_ids.append(full_id)
+            print(f"{identifier_type}:{id}>Found:{identity.get_id()}")
+        except Identifier.DoesNotExist:
+            return Response({"reason":"Identity Not Found"},status=status.HTTP_400_BAD_REQUEST)
+
+    for id_entry in full_ids:
+        *id_type,id_num = id_entry.split('@')
+        id_nums.append(id_num)
+    
+    try:
+        identities = IdentityEntry.objects.filter(auto_id__in=id_nums)
+    except IdentityEntry.DoesNotExist:
+        return Response({"reason":"Identity Not Found"},status=status.HTTP_400_BAD_REQUEST)
+    
+
+    serializer = IdentitySerializerFull(identities,many=True)
+
+    return Response(serializer.data)
+
+@api_view(('GET',))
+@renderer_classes((JSONRenderer,BrowsableAPIRenderer))
+def getID(request,id=None):
+    if id is not None:
+        ids = [id]
+    else:
+        raw_ids = request.GET.getlist("id")
+        ids = [urllib.parse.unquote(id) for id in raw_ids]
+    
+    print(f'IDs: {ids}')
     id_nums = []
     for id_entry in ids:
         *id_type,id_num = id_entry.split('@')

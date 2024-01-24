@@ -9,6 +9,8 @@ import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
 import Container from 'react-bootstrap/Container'
 import { MQTTProvider, useMQTTControl, useMQTTDispatch, useMQTTState } from './MQTTContext'
+import { CacheProvider, useCache } from './CacheContext';
+import { fetch_new, load_config, load_type_list } from './fetch_data';
 import React from 'react';
 import APIBackend from './RestAPI'
 import './app.css'
@@ -66,9 +68,11 @@ function App() {
         debug={true}
       >
         <ToastProvider position='bottom-end'>
-          <BrowserRouter>
-            <Routing config={config}/>
-          </BrowserRouter>
+        <CacheProvider fetch_new_function={(key, add) => fetch_new(config, key, add)}>
+            <BrowserRouter>
+              <Routing config={config} />
+            </BrowserRouter>
+          </CacheProvider>
         </ToastProvider>
       </MQTTProvider>
     )
@@ -205,6 +209,7 @@ function Dashboard({ config = {}, location_list}) {
   let [items_reload, setItemsReload] = React.useState(undefined)
   let [buttonState, setbuttonState] = React.useState(true)
   let [startOnAddButton, setstartOnAddButton] = React.useState(false)
+  // let { cache_fetch } = useCache();
 
 
 
@@ -244,19 +249,6 @@ function Dashboard({ config = {}, location_list}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function getID(prodID){
-    // console.log(prodID)
-    let url = (config.api.host ? config.api.host : window.location.hostname) + (config.api.port ? ":" + config.api.port : "")
-    // console.log(prodID)
-    const response = await APIBackend.api_get('http://' + url + '/id/get/' + config.api.type  +'/' + prodID + "?full")
-      if (response.status === 200) {
-        console.log("id", response.payload)
-        return response.payload
-      } else {
-        console.log("ERROR LOADING ID")
-      }
-  }
-
   React.useEffect(() => {
     if (current_location && to !== current_location.id) {
       setTo(current_location.id)
@@ -277,16 +269,18 @@ function Dashboard({ config = {}, location_list}) {
           setItemsLoaded(true)
           console.log("items", response.payload)
           for (const item of Object.values(response.payload)) {
-            const idObj = await getID(item.item_id);
-            console.log("ID Object", idObj)
-            Object.assign(item, idObj);
-            // console.log(item)
+            // const idObj = await getID(item.item_id);
+            // console.log("ID Object", idObj)
+            // Object.assign(item, idObj);
+            console.log('item loaded: ', item, item.item_id)
             // console.log(item.state)
+
             items[item.state].push(item)
           }
           // console.log(items)
 
           console.log("items", response.payload)
+          console.log("items", items)
           // dispatch({ type: 'SET_ITEMS', item: response.payload })
           dispatch({ type: 'SET_ITEMS', item: items })
 
@@ -355,9 +349,22 @@ function Dashboard({ config = {}, location_list}) {
     }
   }, [barcode, current_item, from, to])
 
-  const handleSubmit = () => {
+  async function handleSubmit() {
+    let item_id = barcode // default to barcode if no item
+    
+    // Get the product ID from the barcode
+    let url = (config.api.host ? config.api.host : window.location.hostname) + (config.api.port ? ":" + config.api.port : "")
+    const response = await APIBackend.api_get('http://' + url + '/id/get/' + config.api.type  +'/' + barcode + "?full")
+      if (response.status === 200) {
+        console.log("id", response.payload)
+        item_id = response.payload.id
+      } else {
+        console.log("ERROR LOADING ID")
+      }
+    console.log("item_id", item_id)
+
     const payload = {
-      item_id: barcode,
+      item_id: item_id,
       to: current_location.id,
       message: startOnAddButton ? "Active" : "Pending"
     }
@@ -369,11 +376,8 @@ function Dashboard({ config = {}, location_list}) {
     try {
       sendJsonMessage(topic, payload);
       add_toast(toast_dispatch, { header: "Sent", body: "" })
-
       //reset
       setQuantity("");
-      // setTo(""); //don't reset to enable quick rescans
-      // setFrom("");
       setBarcode("");
       dispatch({ type: 'SET_ITEM', item: null })
       barcodeRef.current.focus()
@@ -410,6 +414,60 @@ function Dashboard({ config = {}, location_list}) {
     }
   }
 
+  function ItemCard({itemID, state}){
+    let { cache_fetch } = useCache();
+    let current_item = cache_fetch(itemID)
+    let action = ""
+    let actionClass = "btn btn-secondary"
+    let newState = state // default to current state
+
+    switch(state){
+      case "Pending":
+        action = "Start"
+        newState = "Active"
+        actionClass = "btn btn-success btn-secondary"
+        break;
+      case "Active":
+        action = "Stop"
+        newState = "Complete"
+        actionClass = "btn btn-danger btn-secondary"
+        break;
+      case "Complete":
+        action = "Resume"
+        newState = "Active"
+        actionClass = "btn btn-success btn-secondary"
+        break;
+      default:
+        action = ""
+        actionClass = "btn btn-secondary"
+    }
+    if(!current_item){
+      return <Card>
+        <Card.Body>
+          <div className="d-flex justify-content-between">
+            <Card.Title>Loading...</Card.Title>
+            <Card.Text>
+              {itemID}
+            </Card.Text>
+            <button type="button" class={actionClass} onClick={() => onMessage(itemID, newState)}>{action}</button>
+          </div>
+        </Card.Body>
+    </Card>
+    }
+    return  <Card>
+      <Card.Body>
+        <div className="d-flex justify-content-between">
+          <Card.Title>{current_item.name}</Card.Title>
+          <Card.Text>
+            {current_item.id}
+          </Card.Text>
+          <button type="button" class={actionClass} onClick={() => onMessage(itemID, newState)}>{action}</button>
+        </div>
+      </Card.Body>
+    </Card>
+  }
+  
+
 
   return (
 
@@ -439,17 +497,7 @@ function Dashboard({ config = {}, location_list}) {
 
                 <Card.Body>
                   {items_state && items_state['Pending'] && items_state['Pending'].map(item => (
-                    <Card>
-                      <Card.Body>
-                        <div className="d-flex justify-content-between">
-                          <Card.Title>{item.name}</Card.Title>
-                          <Card.Text>
-                            {item.item_id}
-                          </Card.Text>
-                          <button type="button" class="btn btn-success btn-secondary" onClick={() => onMessage(item.item_id, "Active")}>Start</button>
-                        </div>
-                      </Card.Body>
-                    </Card>))}
+                    ItemCard({itemID: item.item_id, state: "Pending"})))}
                 </Card.Body>
               </Card>
 
@@ -465,17 +513,7 @@ function Dashboard({ config = {}, location_list}) {
 
                 <Card.Body>
                   {items_state && items_state['Active'] && items_state['Active'].map(item => (
-                    <Card>
-                      <Card.Body>
-                        <div className="d-flex justify-content-between">
-                          <Card.Title>{item.name}</Card.Title>
-                          <Card.Text>
-                            {item.item_id}
-                          </Card.Text>
-                          <button type="button" class="btn btn-danger btn-secondary" onClick={() => onMessage(item.item_id, "Complete")}> Stop</button>
-                        </div>
-                      </Card.Body>
-                    </Card>))}
+                     ItemCard({itemID: item.item_id, state: "Active"})))}
                 </Card.Body>
               </Card>
 
@@ -491,19 +529,7 @@ function Dashboard({ config = {}, location_list}) {
 
                 <Card.Body>
                   {items_state && items_state['Complete'] && items_state['Complete'].map(item => (
-                    <Card>
-                      <Card.Body>
-                        <div className="d-flex justify-content-between">
-                          <Card.Title>{item.name}</Card.Title>
-                          <Card.Text>
-                            {item.item_id}
-                          </Card.Text>
-                          <div class="btn-group" role="group" aria-label="Basic example">
-                            <button type="button" class="btn btn-success btn-secondary" onClick={() => onMessage(item.item_id, "Active")}>Resume</button>
-                          </div>
-                        </div>
-                      </Card.Body>
-                    </Card>))}
+                     ItemCard({itemID: item.item_id, state: "Complete"})))}
                 </Card.Body>
               </Card>
 

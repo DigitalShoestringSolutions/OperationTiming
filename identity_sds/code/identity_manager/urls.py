@@ -10,14 +10,16 @@ from django.shortcuts import redirect
 
 urlpatterns= [
         path('list/<str:id_type>',views.listByIDType), 
+        path('list',views.listByIDType), 
         path('types',views.listTypes), 
+        path('get/<str:identifier_type>/multi/',views.identify_multi),
         path('get/<str:identifier_type>/<str:identifier>',views.identify),
         path('upload',views.uploadIdentities),
         path('<str:id>',views.getID), 
         path('',views.getID), 
     ]
 
-
+# path('get/<str:identifier_type>/<str:identifier>',views.identify),
 # /id/list/<tag>    ?full
 # /id/get/<identifier_type>/<identifier> ?full
 ### check Identifier List
