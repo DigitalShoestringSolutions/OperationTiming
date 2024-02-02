@@ -25,7 +25,7 @@ export const fetch_new = async (config, keys, add_function) => {
     searchParams.append("id", encodeURIComponent(key))
   });
   let url = (config.api.host ? config.api.host : window.location.hostname) + (config.api.port ? ":" + config.api.port : "")
-  APIBackend.api_get('http://' + url + '/id/get/barcode/multi/?' + searchParams.toString()).then((response) => {
+  APIBackend.api_get('http://' + url + '/id/?' + searchParams.toString()).then((response) => {
     if (response.status === 200) {
       // add_function(response.payload.id, response.payload);
       response.payload.forEach((elem) => {
