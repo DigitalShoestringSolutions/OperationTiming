@@ -15,6 +15,7 @@ urlpatterns= [
         path('history',views.historyAll),
         path('history/for/<str:item_id>',views.historyFor),
         path('history/at/<str:location_link>',views.historyAt),
+        path('duration/for/<str:item_id>',views.durationFor)
     ]
 
 #/state/                            ?t=timestamp

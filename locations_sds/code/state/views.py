@@ -10,8 +10,17 @@ from rest_framework_csv.renderers import CSVRenderer
 import datetime
 import dateutil.parser
 
-from .models import State, Event
-from .serializers import StateSerializer, EventSerializer
+from .models import State, Event, LocationState
+from .serializers import StateSerializer, EventSerializer, LocationStateSerializer
+
+@api_view(('GET',))
+@renderer_classes((JSONRenderer,BrowsableAPIRenderer,CSVRenderer))
+def durationFor(request,item_id):
+    q = Q(end__isnull=False) & Q(item_id__exact=item_id)
+    qs = LocationState.objects.filter(q).order_by('-start')
+    serializer = LocationStateSerializer(qs,many=True)
+    return Response(serializer.data)
+
 
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,BrowsableAPIRenderer,CSVRenderer))

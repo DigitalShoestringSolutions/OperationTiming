@@ -23,7 +23,7 @@ class EventAdmin(admin.ModelAdmin):
 
 @admin.register(models.LocationState)
 class LocationStateAdmin(admin.ModelAdmin):
-    list_display = ['record_id','item_id','location_link','start','end','quantity', 'time_elapsed','state']
+    list_display = ['record_id','item_id','location_link','start','end','quantity', 'time_elapsed', 'inactive_time_elapsed', 'state']
     fields = ('record_id','item_id','location_link','start','end','time_elapsed','state')
     readonly_fields = ('record_id',)
     list_filter = ['location_link']

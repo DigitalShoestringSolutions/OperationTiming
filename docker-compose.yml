@@ -90,6 +90,21 @@ services:
         restart: unless-stopped
         depends_on:
             - "mqtt_broker"
+    grafana-dashboard:
+        extends:
+            file: grafana_dashboard_ui/app.yml
+            service: app
+        networks:
+            internal:
+                aliases:
+                    - grafana_dashboard-ui.docker.local
+        logging:
+                driver: syslog
+                options:
+                        tag: docker-grafana-dashboard-ui
+        restart: unless-stopped
+        depends_on:
+            - "mqtt_broker"
 networks:
     internal:
         # name: shoestring-internal

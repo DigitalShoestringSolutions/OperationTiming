@@ -44,6 +44,7 @@ class LocationState(models.Model):
     start = models.DateTimeField()
     end = models.DateTimeField(blank=True, null=True)
     time_elapsed = models.IntegerField(blank=True, null=True)
+    inactive_time_elapsed = models.IntegerField(blank=True, null=True)
     state = models.CharField(max_length=32, default="Active")
 
     quantity = models.IntegerField(blank=True, null=True)

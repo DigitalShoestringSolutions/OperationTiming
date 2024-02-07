@@ -166,8 +166,13 @@ def update_individual(event):
                 prevState.end = event.timestamp
                 active_states = State.objects.filter(location_link=prevState.location_link,start__lte=prevState.end,end__gte=prevState.start,state='Active')
                 total_time_elapsed = active_states.aggregate(total_time_elapsed=Sum('time_elapsed'))['total_time_elapsed']
-                print(total_time_elapsed)
+                print(f'total_time_elapsed {total_time_elapsed}')
                 prevState.time_elapsed = total_time_elapsed
+                # inactive_time_elapsed
+                inactive_states = State.objects.filter(location_link=prevState.location_link,start__lte=prevState.end,end__gte=prevState.start).exclude(state='Active')
+                total_inactive_time_elapsed = inactive_states.aggregate(total_inactive_time_elapsed=Sum('time_elapsed'))['total_inactive_time_elapsed']
+                print(f'total_time_inactive {total_inactive_time_elapsed}')
+                prevState.inactive_time_elapsed = total_inactive_time_elapsed
                 prevState.save()
                 newLocationState = LocationState.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
         except LocationState.DoesNotExist:

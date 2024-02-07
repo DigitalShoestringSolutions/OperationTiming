@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import State, Event
+from .models import State, Event, LocationState
 
 class StateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,3 +18,8 @@ class EventSerializer(serializers.ModelSerializer):
         fields = ('event_id','item_id','from_location_link','to_location_link',"timestamp","quantity")
 
 
+class LocationStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=LocationState
+        fields = ('record_id','item_id','location_link',"start","end","quantity", "time_elapsed", "inactive_time_elapsed")
+        
