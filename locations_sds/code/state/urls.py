@@ -14,7 +14,9 @@ urlpatterns= [
         path('at/<str:location_link>',views.atLocLink),
         path('history',views.historyAll),
         path('history/for/<str:item_id>',views.historyFor),
+        path('history/for/<str:item_id>/',views.historyFor),
         path('history/at/<str:location_link>',views.historyAt),
+        # path('history/for/<str:item_id>/from/<str:fromDate>/to/<str:toDate>',views.historyFor),
         path('duration/for/<str:item_id>',views.durationFor)
     ]
 
