@@ -420,7 +420,8 @@ function Dashboard({ config = {}, location_list}) {
     let action = ""
     let actionClass = "btn btn-secondary"
     let newState = state // default to current state
-
+    console.log("ItemCard", itemID, state, current_item)
+    console.log("identifier: ", current_item?.identifiers ? current_item.identifiers[0].value : "error")
     switch(state){
       case "Pending":
         action = "Start"
@@ -459,7 +460,7 @@ function Dashboard({ config = {}, location_list}) {
         <div className="d-flex justify-content-between">
           <Card.Title>{current_item.name}</Card.Title>
           <Card.Text>
-            {current_item.id}
+            { current_item?.identifiers ? current_item.identifiers[0].value : "loading..."}
           </Card.Text>
           <button type="button" class={actionClass} onClick={() => onMessage(itemID, newState)}>{action}</button>
         </div>

@@ -5,7 +5,7 @@ from .models import IdentityEntry, IdentityType
 class IdentitySerializer(serializers.ModelSerializer):
     class Meta:
         model=IdentityEntry
-        fields = ('name',)
+        fields = ('name','identifiers')
         depth=1
 
     def to_representation(self, obj):
@@ -16,7 +16,7 @@ class IdentitySerializer(serializers.ModelSerializer):
 class IdentitySerializerFull(serializers.ModelSerializer):
     class Meta:
         model=IdentityEntry
-        fields = ('name','description')
+        fields = ('name','description', 'identifiers')
         depth=1
 
     def to_representation(self, obj):
