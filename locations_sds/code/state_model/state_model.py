@@ -46,6 +46,8 @@ class StateModel:
             message = raw_msg['message']
             quantity = raw_msg.get('quantity',None)
 
+            print(f"quantity: {quantity}")
+
             #log event
             event = Event.objects.create(item_id=item_id,to_location_link=loc_link,quantity=quantity,timestamp=timestamp, message=message)
             
@@ -157,7 +159,8 @@ def update_individual(event):
             pass
 
 
-    # update old location state to end = true
+    # update old location state to end = true 
+    # Can probably get rid of location state as it is redundant, all timing calculations fdone in grafana
     with transaction.atomic():
         try:
             prevState = LocationState.objects.get(item_id__exact=event.item_id,end__isnull=True)
@@ -180,8 +183,8 @@ def update_individual(event):
             newLocationState = LocationState.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
             pass    
 
-                
-    newState = State.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message)
+    print(f"event quantity: {event.quantity}")            
+    newState = State.objects.create(item_id=event.item_id,location_link=event.to_location_link,start=event.timestamp, state=event.message, quantity=event.quantity)
     
     entered_msg = {
         'item_id':newState.item_id,

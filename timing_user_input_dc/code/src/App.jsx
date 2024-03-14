@@ -366,11 +366,12 @@ function Dashboard({ config = {}, location_list}) {
     const payload = {
       item_id: item_id,
       to: current_location.id,
-      message: startOnAddButton ? "Active" : "Pending"
+      message: startOnAddButton ? "Active" : "Pending",
+      quantity: 1
     }
-    if (quantity) {
-      payload.quantity = Number(quantity)
-    }
+    // if (quantity) {
+    //   payload.quantity = Number(quantity)
+    // }
 
     const topic = "location_update/" + to 
     try {
@@ -393,8 +394,11 @@ function Dashboard({ config = {}, location_list}) {
     const payload = {
       item_id: itemId,
       to: current_location.id,
-      message: message
+      message: message,
+      quantity: 1
     }
+
+    console.log("payload", payload);
 
     const topic = "location_update/" + to 
     try {
