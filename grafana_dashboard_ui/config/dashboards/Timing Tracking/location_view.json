@@ -1,246 +1,374 @@
 {
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
-          },
-          "enable": true,
-          "hide": true,
-          "iconColor": "rgba(0, 211, 255, 1)",
-          "name": "Annotations & Alerts",
-          "target": {
-            "limit": 100,
-            "matchAny": false,
-            "tags": [],
-            "type": "dashboard"
-          },
-          "type": "dashboard"
-        }
-      ]
-    },
-    "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
-    "id": 10,
-    "links": [],
-    "liveNow": false,
-    "panels": [
+  "annotations": {
+    "list": [
       {
+        "builtIn": 1,
         "datasource": {
-          "type": "marcusolsson-json-datasource",
-          "uid": "XG5KtG2Iz"
+          "type": "grafana",
+          "uid": "-- Grafana --"
         },
-        "description": "",
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "custom": {
-              "align": "auto",
-              "cellOptions": {
-                "type": "auto"
-              },
-              "inspect": false
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
         },
-        "gridPos": {
-          "h": 6,
-          "w": 10,
-          "x": 0,
-          "y": 0
-        },
-        "id": 2,
-        "options": {
-          "footer": {
-            "countRows": false,
-            "fields": "",
-            "reducer": [
-              "sum"
-            ],
-            "show": false
-          },
-          "showHeader": true
-        },
-        "pluginVersion": "9.4.7",
-        "repeat": "Location",
-        "repeatDirection": "h",
-        "targets": [
-          {
-            "cacheDurationSeconds": 300,
-            "datasource": {
-              "type": "marcusolsson-json-datasource",
-              "uid": "XG5KtG2Iz"
-            },
-            "fields": [
-              {
-                "jsonPath": "$.[item_id]"
-              },
-              {
-                "jsonPath": "$.[state]",
-                "language": "jsonpath",
-                "name": "",
-                "type": "string"
-              },
-              {
-                "jsonPath": "$.[start]",
-                "language": "jsonpath",
-                "name": ""
-              },
-              {
-                "jsonPath": "$.[end]",
-                "language": "jsonpath",
-                "name": ""
-              }
-            ],
-            "method": "GET",
-            "queryParams": "",
-            "refId": "A",
-            "urlPath": "/state/history/at/${Location:id}/?from=${__from:date}&to=${__to:date}"
-          }
-        ],
-        "title": "${Location}",
-        "transformations": [
-          {
-            "disabled": true,
-            "id": "extractFields",
-            "options": {
-              "format": "auto",
-              "jsonPaths": [
-                {
-                  "path": ""
-                }
-              ],
-              "source": "state"
-            }
-          },
-          {
-            "id": "groupBy",
-            "options": {
-              "fields": {
-                "end": {
-                  "aggregations": [
-                    "count"
-                  ],
-                  "operation": "aggregate"
-                },
-                "start": {
-                  "aggregations": [
-                    "count"
-                  ],
-                  "operation": "aggregate"
-                },
-                "state": {
-                  "aggregations": [
-                    "sum"
-                  ],
-                  "operation": "groupby"
-                }
-              }
-            }
-          },
-          {
-            "id": "calculateField",
-            "options": {
-              "alias": "Net amount ",
-              "binary": {
-                "left": "start (count)",
-                "operator": "-",
-                "reducer": "sum",
-                "right": "end (count)"
-              },
-              "mode": "binary",
-              "reduce": {
-                "reducer": "sum"
-              },
-              "replaceFields": false
-            }
-          }
-        ],
-        "type": "table"
+        "type": "dashboard"
       }
-    ],
-    "refresh": false,
-    "revision": 1,
-    "schemaVersion": 38,
-    "style": "dark",
-    "tags": [],
-    "templating": {
-      "list": [
-        {
-          "current": {
-            "selected": true,
-            "text": [
-              "Location 1"
-            ],
-            "value": [
-              "loc@1"
-            ]
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 10,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "XG5KtG2Iz"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "9.4.7",
+      "repeat": "Location",
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "cacheDurationSeconds": 300,
           "datasource": {
             "type": "marcusolsson-json-datasource",
-            "uid": "ijuMrM2Sz"
+            "uid": "XG5KtG2Iz"
           },
-          "definition": "$.[name]",
-          "hide": 0,
-          "includeAll": true,
-          "multi": true,
-          "name": "Location",
-          "options": [],
-          "query": {
-            "cacheDurationSeconds": 300,
-            "experimentalVariableTextField": "name",
-            "experimentalVariableValueField": "id",
-            "fields": [
+          "fields": [
+            {
+              "jsonPath": "$.[item_id]"
+            },
+            {
+              "jsonPath": "$.[state]",
+              "language": "jsonpath",
+              "name": "",
+              "type": "string"
+            },
+            {
+              "jsonPath": "$.[start]",
+              "language": "jsonpath",
+              "name": ""
+            },
+            {
+              "jsonPath": "$.[end]",
+              "language": "jsonpath",
+              "name": ""
+            }
+          ],
+          "method": "GET",
+          "queryParams": "",
+          "refId": "A",
+          "urlPath": "/state/history/at/${Location:id}/?from=${__from:date}&to=${__to:date}"
+        }
+      ],
+      "title": "${Location}",
+      "transformations": [
+        {
+          "disabled": true,
+          "id": "extractFields",
+          "options": {
+            "format": "auto",
+            "jsonPaths": [
               {
-                "jsonPath": "$.[name]",
-                "name": "name"
-              },
-              {
-                "jsonPath": "$.[id]",
-                "language": "jsonpath",
-                "name": "id"
+                "path": ""
               }
             ],
-            "method": "GET",
-            "queryParams": "",
-            "urlPath": "/id/list/loc"
-          },
-          "refresh": 1,
-          "regex": "",
-          "skipUrlSync": false,
-          "sort": 0,
-          "type": "query"
+            "source": "state"
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "end": {
+                "aggregations": [
+                  "count"
+                ],
+                "operation": "aggregate"
+              },
+              "start": {
+                "aggregations": [
+                  "count"
+                ],
+                "operation": "aggregate"
+              },
+              "state": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "groupby"
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "Net amount ",
+            "binary": {
+              "left": "start (count)",
+              "operator": "-",
+              "reducer": "sum",
+              "right": "end (count)"
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            },
+            "replaceFields": false
+          }
         }
-      ]
+      ],
+      "type": "table"
     },
-    "time": {
-      "from": "now-5m",
-      "to": "now"
-    },
-    "timepicker": {},
-    "timezone": "",
-    "title": "Location View",
-    "uid": "zYLkRkJSk",
-    "version": 7,
-    "weekStart": ""
-  }
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "XG5KtG2Iz"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 6,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "stepBefore",
+            "lineStyle": {
+              "dash": [
+                0,
+                10
+              ],
+              "fill": "dot"
+            },
+            "lineWidth": 3,
+            "pointSize": 15,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 23,
+        "x": 0,
+        "y": 6
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "9.4.7",
+      "repeatDirection": "h",
+      "targets": [
+        {
+          "cacheDurationSeconds": 300,
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "XG5KtG2Iz"
+          },
+          "fields": [
+            {
+              "jsonPath": "$.[Complete]",
+              "type": "number"
+            },
+            {
+              "jsonPath": "$.[Active]",
+              "language": "jsonpath",
+              "name": "",
+              "type": "number"
+            },
+            {
+              "jsonPath": "$.[Pending]",
+              "language": "jsonpath",
+              "name": "",
+              "type": "number"
+            },
+            {
+              "jsonPath": "$.[timestamp]",
+              "language": "jsonpath",
+              "name": "",
+              "type": "time"
+            }
+          ],
+          "method": "GET",
+          "queryParams": "",
+          "refId": "A",
+          "urlPath": "/state/summary/at/${Location:id}/?from=${__from:date}&to=${__to:date}"
+        }
+      ],
+      "title": "${Location}",
+      "transformations": [],
+      "transparent": true,
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "",
+  "revision": 1,
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "Location 1"
+          ],
+          "value": [
+            "loc@1"
+          ]
+        },
+        "datasource": {
+          "type": "marcusolsson-json-datasource",
+          "uid": "ijuMrM2Sz"
+        },
+        "definition": "$.[name]",
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "Location",
+        "options": [],
+        "query": {
+          "cacheDurationSeconds": 300,
+          "experimentalVariableTextField": "name",
+          "experimentalVariableValueField": "id",
+          "fields": [
+            {
+              "jsonPath": "$.[name]",
+              "name": "name"
+            },
+            {
+              "jsonPath": "$.[id]",
+              "language": "jsonpath",
+              "name": "id"
+            }
+          ],
+          "method": "GET",
+          "queryParams": "",
+          "urlPath": "/id/list/loc"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Location View",
+  "uid": "zYLkRkJSk",
+  "version": 9,
+  "weekStart": ""
+}

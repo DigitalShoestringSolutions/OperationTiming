@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponse
 from django.conf import settings
 from rest_framework import viewsets, status
@@ -9,9 +9,13 @@ from rest_framework.response import Response
 from rest_framework_csv.renderers import CSVRenderer
 import datetime
 import dateutil.parser
+from collections import Counter
+from datetime import timedelta
+
+
 
 from .models import State, Event, LocationState
-from .serializers import StateSerializer, EventSerializer, LocationStateSerializer
+from .serializers import StateSerializer, EventSerializer, LocationStateSerializer, SummarySerializer
 
 @api_view(('GET',))
 @renderer_classes((JSONRenderer,BrowsableAPIRenderer,CSVRenderer))
@@ -130,6 +134,67 @@ def historyAt(request,location_link):
     q = q & Q(location_link__exact=location_link)
     qs = State.objects.filter(q).order_by('-start')
     serializer = StateSerializer(qs,many=True)
+    return Response(serializer.data)
+
+@api_view(('GET',))
+@renderer_classes((JSONRenderer,BrowsableAPIRenderer,CSVRenderer))
+def summaryAt(request,location_link):
+    t_start = request.GET.get('from', None)
+    t_end = request.GET.get('to', None)
+    print(f"history {t_start}>{t_end}")
+    
+    q = Q()
+
+    if t_start:
+        start_dt = dateutil.parser.isoparse(t_start)
+        q = q&Q(end__gte=start_dt)|Q(end__isnull=True)
+        
+    
+    if t_end:
+        end_dt = dateutil.parser.isoparse(t_end)
+        q = q&Q(start__lte=end_dt)
+    
+    
+    # Initial State Summary
+    q = q & Q(location_link__exact=location_link)
+    qs = State.objects.filter(q).order_by('-start')
+    print(qs)
+
+    output_data = []
+    current_time = start_dt
+    while current_time <= end_dt:
+        current_qs = qs.filter(start__lte=current_time, end__gte=current_time) 
+        if current_qs.exists():
+            print(current_qs)
+            states = [item['state'] for item in current_qs.values('state')]
+            state_counts = dict(Counter(states))
+            state_counts['timestamp'] = current_time.strftime("%Y-%m-%dT%H:%M:%S")
+            if 'Active' not in state_counts:
+                state_counts['Active'] = 0
+            if 'Pending' not in state_counts:
+                state_counts['Pending'] = 0
+            if 'Complete' not in state_counts:
+                state_counts['Complete'] = 0
+            output_data.append(state_counts)
+            print(state_counts)
+        current_time += timedelta(hours=1)
+
+
+
+    print(output_data)
+    # state_summary = qs.annotate(item_count=Count('state'))
+    # states = [item['state'] for item in qs.values('state')]
+    # state_counts = dict(Counter(states))
+    # print(state_counts)
+
+
+
+
+
+
+    # state_summary = qs.values('state') #.annotate(item_count=Count('state'))
+
+    serializer = SummarySerializer(output_data,many=True)
     return Response(serializer.data)
 
 @api_view(('GET',))

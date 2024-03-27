@@ -23,3 +23,8 @@ class LocationStateSerializer(serializers.ModelSerializer):
         model=LocationState
         fields = ('record_id','item_id','location_link',"start","end","quantity", "time_elapsed", "inactive_time_elapsed")
         
+class SummarySerializer(serializers.Serializer):
+    Complete = serializers.IntegerField()
+    Active = serializers.IntegerField()
+    Pending = serializers.IntegerField()
+    timestamp = serializers.DateTimeField()
