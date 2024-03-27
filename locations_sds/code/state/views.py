@@ -11,6 +11,8 @@ import datetime
 import dateutil.parser
 from collections import Counter
 from datetime import timedelta
+import math
+
 
 
 
@@ -154,7 +156,11 @@ def summaryAt(request,location_link):
         end_dt = dateutil.parser.isoparse(t_end)
         q = q&Q(start__lte=end_dt)
     
-    
+    elapsed_time = end_dt - start_dt
+    elapsed_seconds = math.ceil(elapsed_time.total_seconds())
+    time_delta = math.ceil(elapsed_seconds/100)
+
+
     # Initial State Summary
     q = q & Q(location_link__exact=location_link)
     qs = State.objects.filter(q).order_by('-start')
@@ -177,7 +183,7 @@ def summaryAt(request,location_link):
                 state_counts['Complete'] = 0
             output_data.append(state_counts)
             print(state_counts)
-        current_time += timedelta(hours=1)
+        current_time += timedelta(seconds=time_delta)
 
 
 

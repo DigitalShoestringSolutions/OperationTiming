@@ -64,9 +64,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 24,
-        "x": 0,
+        "h": 7,
+        "w": 10,
+        "x": 7,
         "y": 0
       },
       "id": 2,
@@ -187,6 +187,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
+            "fixedColor": "red",
             "mode": "palette-classic"
           },
           "custom": {
@@ -212,7 +213,7 @@
               "fill": "dot"
             },
             "lineWidth": 3,
-            "pointSize": 15,
+            "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
             },
@@ -220,23 +221,37 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
               "mode": "off"
             }
           },
-          "mappings": [],
+          "mappings": [
+            {
+              "options": {
+                "Active": {
+                  "color": "green",
+                  "index": 2
+                },
+                "Complete": {
+                  "color": "orange",
+                  "index": 0
+                },
+                "Pending": {
+                  "color": "red",
+                  "index": 1
+                }
+              },
+              "type": "value"
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           }
@@ -245,9 +260,9 @@
       },
       "gridPos": {
         "h": 15,
-        "w": 23,
+        "w": 24,
         "x": 0,
-        "y": 6
+        "y": 7
       },
       "id": 3,
       "options": {
@@ -263,6 +278,7 @@
         }
       },
       "pluginVersion": "9.4.7",
+      "repeat": "Location",
       "repeatDirection": "h",
       "targets": [
         {
@@ -307,7 +323,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "",
+  "refresh": false,
   "revision": 1,
   "schemaVersion": 38,
   "style": "dark",
@@ -362,13 +378,13 @@
     ]
   },
   "time": {
-    "from": "now-30d",
-    "to": "now"
+    "from": "2024-03-27T16:32:48.712Z",
+    "to": "2024-03-27T16:46:50.879Z"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Location View",
   "uid": "zYLkRkJSk",
-  "version": 9,
+  "version": 15,
   "weekStart": ""
 }
