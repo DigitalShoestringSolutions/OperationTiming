@@ -161,18 +161,15 @@ def summaryAt(request,location_link):
     print(f"start_dt: {start_dt}")
     print(f"end_dt: {end_dt}")
 
-    # elapsed_time = end_dt - start_dt
-    # elapsed_seconds = math.ceil(elapsed_time.total_seconds())
-    # time_delta = math.ceil(elapsed_seconds/100)
-
-
     # Initial State Summary
     q = q & Q(location_link__exact=location_link)
     qs = State.objects.filter(q).order_by('-start')
     datetime_list = []
     datetime_list.append(start_dt)
 
+    
     for state in qs:
+        print (f"state: {state} , {state.state} \n")
         datetime_list.append(state.start) if state.start is not None else None
         datetime_list.append(state.end) if state.end is not None else None
 
@@ -182,14 +179,13 @@ def summaryAt(request,location_link):
     output_data = []
     current_time = start_dt
     for datetime_obj in datetime_list:
-        current_qs = qs.filter(start__lte=datetime_obj, end__gte=datetime_obj) 
+        current_qs = qs.filter(Q(start__lte=datetime_obj) & (Q(end__gte=datetime_obj) | Q(end__isnull=True)))
+        # current_qs = qs.filter(start__lte=datetime_obj, end__gte=datetime_obj) 
         if current_qs.exists():
             # print(current_qs)
             states = [item['state'] for item in current_qs.values('state')]
             state_counts = dict(Counter(states))
             state_counts['timestamp'] = datetime_obj.strftime("%Y-%m-%dT%H:%M:%S%z")
-
-            print(f"timestamp: {state_counts['timestamp']} \n")
             
             if 'Active' not in state_counts:
                 state_counts['Active'] = 0
