@@ -12,10 +12,6 @@ import dateutil.parser
 from collections import Counter
 from datetime import timedelta
 import math
-
-
-
-
 from .models import State, Event, LocationState
 from .serializers import StateSerializer, EventSerializer, LocationStateSerializer, SummarySerializer
 
@@ -169,16 +165,22 @@ def summaryAt(request,location_link):
 
     
     for state in qs:
-        print (f"state: {state} , {state.state} \n")
+        # print(f'end: {state.end} end+delta: {state.end+timedelta(seconds=0.1)}')
         datetime_list.append(state.start) if state.start is not None else None
-        datetime_list.append(state.end) if state.end is not None else None
+
+        if state.end is not None:
+            datetime_list.append(state.end+timedelta(seconds=1))
+        
 
     datetime_list.append(end_dt)
-    datetime_list = list(set(datetime_list))
+    
+
+    datetime_list = sorted(list(set(datetime_list)))
 
     output_data = []
     current_time = start_dt
     for datetime_obj in datetime_list:
+        print(f"datetime: {datetime_obj.strftime('%Y-%m-%dT%H:%M:%S%z')}  \n")
         current_qs = qs.filter(Q(start__lte=datetime_obj) & (Q(end__gte=datetime_obj) | Q(end__isnull=True)))
         # current_qs = qs.filter(start__lte=datetime_obj, end__gte=datetime_obj) 
         if current_qs.exists():
@@ -194,6 +196,14 @@ def summaryAt(request,location_link):
             if 'Complete' not in state_counts:
                 state_counts['Complete'] = 0
             output_data.append(state_counts)
+            print(f"{datetime_obj.strftime('%Y-%m-%dT%H:%M:%S%z')} \n {state_counts} \n")
+        else:
+            state_counts['timestamp'] = datetime_obj.strftime("%Y-%m-%dT%H:%M:%S%z")
+            state_counts['Active'] = 0
+            state_counts['Pending'] = 0
+            state_counts['Complete'] = 0
+            output_data.append(state_counts)
+
             # print(state_counts)
         # datetime += timedelta(seconds=time_delta)
 
