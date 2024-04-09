@@ -1,21 +1,6 @@
 version: '2'
 
 services:
-    user-input-dc:
-        extends:
-            file: user_input_dc/app.yml
-            service: app
-        networks:
-            internal:
-                aliases:
-                    - user-input-dc.docker.local
-        logging:
-                driver: syslog
-                options:
-                        tag: docker-user-input-dc
-        restart: unless-stopped
-        depends_on:
-            - "mqtt_broker"
     timing-user-input-dc:
         extends:
             file: timing_user_input_dc/app.yml
