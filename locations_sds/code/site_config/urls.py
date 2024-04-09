@@ -28,9 +28,9 @@ urlpatterns = [
     path('events/',include('state.event_urls')),
 ]
 
-admin.site.site_header = "Location Tracking Admin"
-admin.site.site_title = "Location Tracking Admin Portal"
-admin.site.index_title = "Welcome to Location Tracking Administration Portal"
+admin.site.site_header = "Timing Tracking Admin"
+admin.site.site_title = "Timing Tracking Admin Portal"
+admin.site.index_title = "Welcome to Timing Tracking Administration Portal"
 
 from django.contrib.auth.models import Group
 admin.site.unregister(Group)

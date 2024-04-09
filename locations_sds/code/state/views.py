@@ -146,7 +146,9 @@ def summaryAt(request,location_link):
     print(f"summary {t_start}>{t_end}")
     
     q = Q()
-
+    
+    start_dt = None
+    end_dt = None
     if t_start:
         start_dt = dateutil.parser.isoparse(t_start)
         q = q&Q(end__gte=start_dt)|Q(end__isnull=True)
@@ -156,9 +158,12 @@ def summaryAt(request,location_link):
         end_dt = dateutil.parser.isoparse(t_end)
         q = q&Q(start__lte=end_dt)
     
-    elapsed_time = end_dt - start_dt
-    elapsed_seconds = math.ceil(elapsed_time.total_seconds())
-    time_delta = math.ceil(elapsed_seconds/100)
+    print(f"start_dt: {start_dt}")
+    print(f"end_dt: {end_dt}")
+
+    # elapsed_time = end_dt - start_dt
+    # elapsed_seconds = math.ceil(elapsed_time.total_seconds())
+    # time_delta = math.ceil(elapsed_seconds/100)
 
 
     # Initial State Summary
@@ -173,17 +178,19 @@ def summaryAt(request,location_link):
 
     datetime_list.append(end_dt)
     datetime_list = list(set(datetime_list))
-    print(f'Datetimelist: {datetime_list} ')
 
     output_data = []
     current_time = start_dt
-    for datetime in datetime_list:
-        current_qs = qs.filter(start__lte=datetime, end__gte=datetime) 
+    for datetime_obj in datetime_list:
+        current_qs = qs.filter(start__lte=datetime_obj, end__gte=datetime_obj) 
         if current_qs.exists():
             # print(current_qs)
             states = [item['state'] for item in current_qs.values('state')]
             state_counts = dict(Counter(states))
-            state_counts['timestamp'] = datetime.strftime("%Y-%m-%dT%H:%M:%S")
+            state_counts['timestamp'] = datetime_obj.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+            print(f"timestamp: {state_counts['timestamp']} \n")
+            
             if 'Active' not in state_counts:
                 state_counts['Active'] = 0
             if 'Pending' not in state_counts:
@@ -196,7 +203,7 @@ def summaryAt(request,location_link):
 
 
 
-    print(output_data)
+    # print(output_data)
     # state_summary = qs.annotate(item_count=Count('state'))
     # states = [item['state'] for item in qs.values('state')]
     # state_counts = dict(Counter(states))
