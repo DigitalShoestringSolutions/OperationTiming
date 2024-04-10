@@ -198,6 +198,7 @@ def summaryAt(request,location_link):
             output_data.append(state_counts)
             print(f"{datetime_obj.strftime('%Y-%m-%dT%H:%M:%S%z')} \n {state_counts} \n")
         else:
+            state_counts = {}
             state_counts['timestamp'] = datetime_obj.strftime("%Y-%m-%dT%H:%M:%S%z")
             state_counts['Active'] = 0
             state_counts['Pending'] = 0
