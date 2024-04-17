@@ -12,10 +12,6 @@ import dateutil.parser
 from collections import Counter
 from datetime import timedelta
 import math
-
-
-
-
 from .models import State, Event, LocationState
 from .serializers import StateSerializer, EventSerializer, LocationStateSerializer, SummarySerializer
 
@@ -146,7 +142,9 @@ def summaryAt(request,location_link):
     print(f"summary {t_start}>{t_end}")
     
     q = Q()
-
+    
+    start_dt = None
+    end_dt = None
     if t_start:
         start_dt = dateutil.parser.isoparse(t_start)
         q = q&Q(end__gte=start_dt)|Q(end__isnull=True)
@@ -156,10 +154,8 @@ def summaryAt(request,location_link):
         end_dt = dateutil.parser.isoparse(t_end)
         q = q&Q(start__lte=end_dt)
     
-    elapsed_time = end_dt - start_dt
-    elapsed_seconds = math.ceil(elapsed_time.total_seconds())
-    time_delta = math.ceil(elapsed_seconds/100)
-
+    print(f"start_dt: {start_dt}")
+    print(f"end_dt: {end_dt}")
 
     # Initial State Summary
     q = q & Q(location_link__exact=location_link)
@@ -167,23 +163,32 @@ def summaryAt(request,location_link):
     datetime_list = []
     datetime_list.append(start_dt)
 
+    
     for state in qs:
+        # print(f'end: {state.end} end+delta: {state.end+timedelta(seconds=0.1)}')
         datetime_list.append(state.start) if state.start is not None else None
-        datetime_list.append(state.end) if state.end is not None else None
+
+        if state.end is not None:
+            datetime_list.append(state.end+timedelta(seconds=1))
+        
 
     datetime_list.append(end_dt)
-    datetime_list = list(set(datetime_list))
-    print(f'Datetimelist: {datetime_list} ')
+    
+
+    datetime_list = sorted(list(set(datetime_list)))
 
     output_data = []
     current_time = start_dt
-    for datetime in datetime_list:
-        current_qs = qs.filter(start__lte=datetime, end__gte=datetime) 
+    for datetime_obj in datetime_list:
+        print(f"datetime: {datetime_obj.strftime('%Y-%m-%dT%H:%M:%S%z')}  \n")
+        current_qs = qs.filter(Q(start__lte=datetime_obj) & (Q(end__gte=datetime_obj) | Q(end__isnull=True)))
+        # current_qs = qs.filter(start__lte=datetime_obj, end__gte=datetime_obj) 
         if current_qs.exists():
             # print(current_qs)
             states = [item['state'] for item in current_qs.values('state')]
             state_counts = dict(Counter(states))
-            state_counts['timestamp'] = datetime.strftime("%Y-%m-%dT%H:%M:%S")
+            state_counts['timestamp'] = datetime_obj.strftime("%Y-%m-%dT%H:%M:%S%z")
+            
             if 'Active' not in state_counts:
                 state_counts['Active'] = 0
             if 'Pending' not in state_counts:
@@ -191,12 +196,21 @@ def summaryAt(request,location_link):
             if 'Complete' not in state_counts:
                 state_counts['Complete'] = 0
             output_data.append(state_counts)
+            print(f"{datetime_obj.strftime('%Y-%m-%dT%H:%M:%S%z')} \n {state_counts} \n")
+        else:
+            state_counts = {}
+            state_counts['timestamp'] = datetime_obj.strftime("%Y-%m-%dT%H:%M:%S%z")
+            state_counts['Active'] = 0
+            state_counts['Pending'] = 0
+            state_counts['Complete'] = 0
+            output_data.append(state_counts)
+
             # print(state_counts)
         # datetime += timedelta(seconds=time_delta)
 
 
 
-    print(output_data)
+    # print(output_data)
     # state_summary = qs.annotate(item_count=Count('state'))
     # states = [item['state'] for item in qs.values('state')]
     # state_counts = dict(Counter(states))

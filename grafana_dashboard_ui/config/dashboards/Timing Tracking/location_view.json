@@ -54,7 +54,7 @@
               "tooltip": false,
               "viz": false
             },
-            "lineInterpolation": "stepBefore",
+            "lineInterpolation": "stepAfter",
             "lineStyle": {
               "dash": [
                 0,
@@ -158,7 +158,7 @@
       },
       "gridPos": {
         "h": 15,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 0
       },
@@ -228,7 +228,7 @@
       "description": "",
       "gridPos": {
         "h": 6,
-        "w": 8,
+        "w": 12,
         "x": 0,
         "y": 15
       },
@@ -244,6 +244,7 @@
         "wrapLogMessage": false
       },
       "pluginVersion": "9.4.7",
+      "repeat": "Location",
       "repeatDirection": "h",
       "targets": [
         {
@@ -335,159 +336,9 @@
         }
       ],
       "type": "logs"
-    },
-    {
-      "datasource": {
-        "type": "marcusolsson-json-datasource",
-        "uid": "XG5KtG2Iz"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 16,
-        "x": 8,
-        "y": 15
-      },
-      "id": 2,
-      "options": {
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "pluginVersion": "9.4.7",
-      "repeat": "Location",
-      "repeatDirection": "h",
-      "targets": [
-        {
-          "cacheDurationSeconds": 300,
-          "datasource": {
-            "type": "marcusolsson-json-datasource",
-            "uid": "XG5KtG2Iz"
-          },
-          "fields": [
-            {
-              "jsonPath": "$.[item_id]"
-            },
-            {
-              "jsonPath": "$.[state]",
-              "language": "jsonpath",
-              "name": "",
-              "type": "string"
-            },
-            {
-              "jsonPath": "$.[start]",
-              "language": "jsonpath",
-              "name": ""
-            },
-            {
-              "jsonPath": "$.[end]",
-              "language": "jsonpath",
-              "name": ""
-            }
-          ],
-          "method": "GET",
-          "queryParams": "",
-          "refId": "A",
-          "urlPath": "/state/history/at/${Location:id}/?from=${__from:date}&to=${__to:date}"
-        }
-      ],
-      "title": "${Location}",
-      "transformations": [
-        {
-          "disabled": true,
-          "id": "extractFields",
-          "options": {
-            "format": "auto",
-            "jsonPaths": [
-              {
-                "path": ""
-              }
-            ],
-            "source": "state"
-          }
-        },
-        {
-          "id": "groupBy",
-          "options": {
-            "fields": {
-              "end": {
-                "aggregations": [
-                  "count"
-                ],
-                "operation": "aggregate"
-              },
-              "start": {
-                "aggregations": [
-                  "count"
-                ],
-                "operation": "aggregate"
-              },
-              "state": {
-                "aggregations": [
-                  "sum"
-                ],
-                "operation": "groupby"
-              }
-            }
-          }
-        },
-        {
-          "id": "calculateField",
-          "options": {
-            "alias": "Net amount ",
-            "binary": {
-              "left": "start (count)",
-              "operator": "-",
-              "reducer": "sum",
-              "right": "end (count)"
-            },
-            "mode": "binary",
-            "reduce": {
-              "reducer": "sum"
-            },
-            "replaceFields": false
-          }
-        }
-      ],
-      "type": "table"
     }
   ],
-  "refresh": false,
+  "refresh": "",
   "revision": 1,
   "schemaVersion": 38,
   "style": "dark",
@@ -496,12 +347,14 @@
     "list": [
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": [
-            "Location 1"
+            "Location 1",
+            "Location 2"
           ],
           "value": [
-            "loc@1"
+            "loc@1",
+            "loc@2"
           ]
         },
         "datasource": {
@@ -542,13 +395,13 @@
     ]
   },
   "time": {
-    "from": "now-2d",
-    "to": "now"
+    "from": "now/w",
+    "to": "now/w"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Location View",
   "uid": "zYLkRkJSk",
-  "version": 20,
+  "version": 27,
   "weekStart": ""
 }
